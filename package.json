@@ -1,0 +1,14 @@
+{
+  "name": "pitutos-catalogo",
+  "version": "1.0.0",
+  "description": "Catálogo de productos privado con pago por transferencia o Mercado Pago - Cloudflare Pages + D1 + R2",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3"
+  }
+}

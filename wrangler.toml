@@ -1,0 +1,55 @@
+name = "pitutos-catalogo"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pitutos-catalogo-db"
+database_id = "13889caa-fd00-4600-865a-9146c85bad44"
+
+[[r2_buckets]]
+binding = "COMPROBANTES"
+bucket_name = "pitutos-catalogo-comprobantes"
+
+[[r2_buckets]]
+binding = "FOTOS_PRODUCTOS"
+bucket_name = "pitutos-catalogo-fotos-productos"
+
+[vars]
+NOMBRE_NEGOCIO = "Mis Pitutos Informáticos"
+# Correo donde llegan los avisos de cada pedido/pago.
+EMAIL_NOTIFICACIONES = "sergiovasquezv@gmail.com"
+# Datos bancarios que se muestran en el checkout (transferencia).
+BANCO_NOMBRE = "Scotiabank"
+BANCO_TIPO_CUENTA = "Cuenta Vista"
+BANCO_NUMERO_CUENTA = "970704205"
+BANCO_RUT_TITULAR = "13.337.844-8"
+BANCO_NOMBRE_TITULAR = "Sergio Vásquez"
+BANCO_EMAIL_TITULAR = "sergiovasquezv@gmail.com"
+# Contacto que se muestra a los clientes en el catálogo (botón de WhatsApp y correo).
+# Reemplaza el número por el tuyo en formato internacional SIN el "+" (ej: 56912345678).
+CONTACTO_WHATSAPP = "56900000000"
+CONTACTO_EMAIL = "sergiovasquezv@gmail.com"
+# Dominio ya verificado en Resend: los correos salen desde aquí.
+EMAIL_REMITENTE = "Mis Pitutos Informáticos <contacto@mispitutosinformaticos.cl>"
+
+# Los siguientes son SECRETOS (nunca van en este archivo ni se suben a
+# ningún repositorio). Se agregan una sola vez con:
+#   npx wrangler pages secret put RESEND_API_KEY --project-name=pitutos-catalogo
+#   npx wrangler pages secret put MP_ACCESS_TOKEN --project-name=pitutos-catalogo
+#   npx wrangler pages secret put CATALOG_TOKEN --project-name=pitutos-catalogo
+#   npx wrangler pages secret put ADMIN_USER --project-name=pitutos-catalogo
+#   npx wrangler pages secret put ADMIN_PASS --project-name=pitutos-catalogo
+#   npx wrangler pages secret put SESSION_SECRET --project-name=pitutos-catalogo
+#
+# RESEND_API_KEY      -> el mismo que ya usas en Pitutos Panel.
+# MP_ACCESS_TOKEN     -> tu token de PRODUCCIÓN de Mercado Pago.
+# CATALOG_TOKEN       -> una palabra/código largo inventado por ti (el que
+#                        vas a poner al final del link que le mandas a la
+#                        gente, ej: https://tu-sitio.pages.dev/?t=ESTO).
+# ADMIN_USER          -> el usuario con el que entras al panel (/admin).
+# ADMIN_PASS          -> la contraseña del panel.
+# SESSION_SECRET      -> una palabra/código largo cualquiera, inventado por
+#                        ti, que se usa solo para firmar la sesión del
+#                        panel (no la escribes en ningún lado más, solo
+#                        aquí una vez).

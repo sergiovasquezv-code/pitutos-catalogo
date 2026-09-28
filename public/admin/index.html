@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel — Catálogo</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <!-- Login -->
+  <div class="page-narrow" id="login-view" hidden>
+    <div class="login-box">
+      <h1>Panel del catálogo</h1>
+      <p>Mis Pitutos Informáticos</p>
+      <form id="login-form">
+        <label>
+          Usuario
+          <input type="text" id="l-usuario" required autocomplete="username" />
+        </label>
+        <label>
+          Contraseña
+          <input type="password" id="l-clave" required autocomplete="current-password" />
+        </label>
+        <button type="submit" class="btn-primary btn-block">Entrar</button>
+        <p class="error-msg" id="login-error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Panel -->
+  <div id="panel-view" hidden>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-logo">MP</div>
+          <div>
+            <div class="brand-name">Panel del catálogo</div>
+            <div class="brand-tag">Mis Pitutos Informáticos</div>
+          </div>
+        </div>
+        <div class="admin-topbar-actions">
+          <button type="button" class="btn-logout" id="btn-logout">Salir</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="admin-tabs">
+        <button type="button" class="admin-tab active" data-tab="productos">Productos</button>
+        <button type="button" class="admin-tab" data-tab="categorias">Categorías</button>
+        <button type="button" class="admin-tab" data-tab="pedidos">Pedidos</button>
+        <button type="button" class="admin-tab" data-tab="cotizaciones">Cotizaciones<span class="tab-badge" id="badge-cotizaciones" hidden></span></button>
+        <button type="button" class="admin-tab" data-tab="estadisticas">Estadísticas</button>
+        <button type="button" class="admin-tab" data-tab="ajustes">Ajustes</button>
+      </div>
+
+      <!-- Tab productos -->
+      <section id="tab-productos">
+        <div class="kpi-row" id="kpi-productos">
+          <div class="kpi-card">
+            <div class="kpi-label">Productos en venta</div>
+            <div class="kpi-value" id="kpi-activos">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Unidades en stock</div>
+            <div class="kpi-value" id="kpi-unidades">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Valor del inventario</div>
+            <div class="kpi-value" id="kpi-valor">—</div>
+          </div>
+          <div class="kpi-card kpi-card-warn">
+            <div class="kpi-label">Agotados</div>
+            <div class="kpi-value" id="kpi-agotados">—</div>
+          </div>
+        </div>
+
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Productos</h2>
+          <div class="admin-header-actions">
+            <select id="filtro-categoria" class="filtro-select">
+              <option value="">Todas las categorías</option>
+            </select>
+            <button type="button" class="btn-primary" id="btn-nuevo-producto">+ Nuevo producto</button>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="productos-tbody">
+              <tr><td colspan="8">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab categorías -->
+      <section id="tab-categorias" hidden>
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Categorías</h2>
+        </div>
+        <p class="hint-small" style="margin-bottom:14px;">
+          El orden de aquí es el orden en que aparecen en el catálogo. Sube o baja una categoría para mover con ella todos sus productos.
+        </p>
+        <div class="admin-table-wrap" style="margin-bottom:18px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Orden</th>
+                <th>Categoría</th>
+                <th># productos</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="categorias-tbody">
+              <tr><td colspan="4">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <form id="form-nueva-categoria" class="checkout-form" style="max-width:360px;">
+          <label>
+            Nueva categoría
+            <input type="text" id="nc-nombre" placeholder="Ej: Accesorios" required />
+          </label>
+          <button type="submit" class="btn-primary">+ Agregar categoría</button>
+          <p class="error-msg" id="categoria-error" hidden></p>
+        </form>
+      </section>
+
+      <!-- Tab pedidos -->
+      <section id="tab-pedidos" hidden>
+        <div class="kpi-row" id="kpi-pedidos">
+          <div class="kpi-card kpi-card-ok">
+            <div class="kpi-label">Total vendido</div>
+            <div class="kpi-value" id="kpi-vendido">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Pedidos pagados</div>
+            <div class="kpi-value" id="kpi-pagados">—</div>
+          </div>
+          <div class="kpi-card kpi-card-warn">
+            <div class="kpi-label">Pedidos pendientes</div>
+            <div class="kpi-value" id="kpi-pendientes">—</div>
+          </div>
+        </div>
+
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Pedidos</h2>
+          <button type="button" class="btn-mini" id="btn-refrescar-pedidos">Refrescar</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Pago</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pedidos-tbody">
+              <tr><td colspan="7">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab cotizaciones -->
+      <section id="tab-cotizaciones" hidden>
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Solicitudes de cotización</h2>
+          <button type="button" class="btn-mini" id="btn-refrescar-cotizaciones">Refrescar</button>
+        </div>
+        <p class="hint-small" style="margin-bottom:14px;">
+          Cuando alguien pide "Cotizar" un servicio en el catálogo (en vez de pagar de inmediato), su solicitud aparece aquí con la descripción de lo que necesita.
+        </p>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cotizaciones-tbody">
+              <tr><td colspan="6">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab estadísticas -->
+      <section id="tab-estadisticas" hidden>
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Productos más vendidos</h2>
+        </div>
+        <div class="admin-table-wrap" style="margin-bottom:24px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>Unidades vendidas</th>
+                <th>Ingresos</th>
+              </tr>
+            </thead>
+            <tbody id="top-productos-tbody">
+              <tr><td colspan="4">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Mejores clientes</h2>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Pedidos pagados</th>
+                <th>Total comprado</th>
+              </tr>
+            </thead>
+            <tbody id="top-clientes-tbody">
+              <tr><td colspan="4">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="hint-small" style="margin-top:14px;">Solo cuenta pedidos ya marcados como "Pagado" — los pendientes no se incluyen todavía.</p>
+      </section>
+
+      <!-- Tab ajustes -->
+      <section id="tab-ajustes" hidden>
+        <div class="admin-header-row">
+          <h2 style="margin:0; font-size:16px;">Mensaje destacado</h2>
+        </div>
+        <p class="hint-small" style="margin-bottom:14px;">
+          Se muestra arriba del catálogo, bien visible. Úsalo para promociones ("Envío gratis sobre $30.000") o avisos ("No hay despachos el lunes 29").
+        </p>
+        <div class="admin-table-wrap" style="padding:18px; max-width:480px;">
+          <form id="form-ajustes" class="checkout-form">
+            <label>
+              Mensaje
+              <textarea id="aj-mensaje" maxlength="500" placeholder="Ej: 🔥 15% de descuento pagando por transferencia"></textarea>
+            </label>
+            <label class="checkbox-line">
+              <input type="checkbox" id="aj-activo" />
+              Mostrar en el catálogo
+            </label>
+            <button type="submit" class="btn-primary">Guardar</button>
+            <p class="error-msg" id="ajustes-error" hidden></p>
+            <p class="hint-small" id="ajustes-ok" hidden>Guardado.</p>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal crear/editar producto -->
+  <div class="modal-overlay" id="modal-producto" hidden>
+    <div class="modal-box">
+      <h2 id="modal-producto-titulo">Nuevo producto</h2>
+      <form id="form-producto">
+        <input type="hidden" id="p-id" />
+        <label>
+          Nombre
+          <input type="text" id="p-nombre" required />
+        </label>
+        <label>
+          Categoría
+          <select id="p-categoria-id" required></select>
+        </label>
+        <label>
+          Tipo
+          <select id="p-tipo">
+            <option value="producto">Producto (con stock)</option>
+            <option value="servicio">Servicio (sin stock — se cotiza)</option>
+          </select>
+        </label>
+        <p class="hint-small" id="p-tipo-hint" hidden>
+          En el catálogo este servicio va a mostrar un botón "Cotizar" en vez de "Agregar al carrito" — el cliente describe lo que necesita y te llega a ti, sin pago inmediato.
+        </p>
+        <label>
+          Precio (CLP)
+          <input type="number" id="p-precio" min="0" required />
+        </label>
+        <label>
+          Descripción
+          <textarea id="p-descripcion"></textarea>
+        </label>
+        <label id="p-stock-label">
+          Stock
+          <input type="number" id="p-stock" min="0" required />
+        </label>
+        <label>
+          Foto (opcional)
+          <input type="file" id="p-foto" accept="image/*" />
+        </label>
+        <label class="checkbox-line">
+          <input type="checkbox" id="p-disponible" checked />
+          Visible en el catálogo
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btn-cancelar-producto">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+        <p class="error-msg" id="producto-error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal avisar por WhatsApp -->
+  <div class="modal-overlay" id="modal-whatsapp" hidden>
+    <div class="modal-box">
+      <h2 id="wa-titulo">Avisar por WhatsApp</h2>
+      <label>
+        Mensaje rápido
+        <select id="wa-plantilla">
+          <option value="preparacion">Pedido en preparación</option>
+          <option value="despachado">Pedido despachado / en camino</option>
+          <option value="listo_retiro">Listo para retirar</option>
+          <option value="pago_confirmado">Pago confirmado</option>
+          <option value="personalizado">Escribir mensaje propio</option>
+        </select>
+      </label>
+      <label>
+        Mensaje
+        <textarea id="wa-mensaje" rows="5"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btn-cerrar-whatsapp">Cancelar</button>
+        <a class="btn-primary" id="btn-abrir-whatsapp" target="_blank" rel="noopener" style="text-align:center; text-decoration:none;">Abrir WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
