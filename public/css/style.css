@@ -136,8 +136,8 @@ button { font-family: inherit; cursor: pointer; }
   padding: 0 32px;
 }
 @keyframes banner-marquee {
-  from { transform: translateX(-50%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* ---------- Page / catalog grid ---------- */
