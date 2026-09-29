@@ -115,11 +115,29 @@ button { font-family: inherit; cursor: pointer; }
 .banner-destacado {
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   color: #fff;
-  text-align: center;
-  padding: 12px 20px;
+  padding: 12px 0;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
+  overflow: hidden;
+}
+
+/* Texto en movimiento tipo "marquee", igual que en la portada: el mensaje
+   va duplicado dos veces seguidas dentro de una pista que se desplaza en
+   loop infinito, así no se nota el punto donde vuelve a empezar. */
+.banner-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 64px;
+  animation: banner-marquee 18s linear infinite;
+}
+.banner-marquee-track span {
+  white-space: nowrap;
+  padding: 0 32px;
+}
+@keyframes banner-marquee {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
 }
 
 /* ---------- Page / catalog grid ---------- */

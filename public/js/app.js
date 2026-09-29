@@ -57,7 +57,20 @@ async function cargarCatalogo() {
 
   const banner = document.getElementById("banner-destacado");
   if (data.mensaje_destacado) {
-    banner.textContent = data.mensaje_destacado;
+    // Texto duplicado dentro de una "pista" que se desplaza en loop (mismo
+    // efecto marquee que la portada) — se arma con nodos de texto (no
+    // innerHTML) para no correr riesgo de inyectar HTML desde el mensaje
+    // que el admin escribe en el panel.
+    banner.textContent = "";
+    const track = document.createElement("div");
+    track.className = "banner-marquee-track";
+    const span1 = document.createElement("span");
+    span1.textContent = data.mensaje_destacado;
+    const span2 = document.createElement("span");
+    span2.textContent = data.mensaje_destacado;
+    span2.setAttribute("aria-hidden", "true");
+    track.append(span1, span2);
+    banner.append(track);
     banner.hidden = false;
   } else {
     banner.hidden = true;
