@@ -538,6 +538,7 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--text-muted);
 }
 .contact-bar .footer-link { background: var(--card); }
+.contact-bar .footer-link:hover { background: var(--accent); color: #fff; }
 
 /* ---------- Estado pedido (gracias.html) ---------- */
 .estado-card {
