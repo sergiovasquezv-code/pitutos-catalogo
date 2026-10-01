@@ -190,7 +190,16 @@ button { font-family: inherit; cursor: pointer; }
 
 .error-page { color: var(--danger); }
 
-.catalog-intro { margin: 4px 0 16px; color: var(--text-muted); }
+.catalog-intro {
+  margin: 4px 0 20px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 .categoria-filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
 .chip-categoria {
