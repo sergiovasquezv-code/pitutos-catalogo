@@ -55,11 +55,41 @@ button { font-family: inherit; cursor: pointer; }
   position: sticky;
   top: 0;
   z-index: 20;
+  overflow: hidden;
+  background: #0e0b1a;
+}
+
+/* Mismo fondo animado de la portada (manchas de luz violeta/cian que se
+   mueven lento), aplicado solo a la cabecera — abajo, el listado de
+   productos sigue sobre fondo claro para que precios y fotos se lean
+   fácil. Ver public/index.html de la portada para el original. */
+.cabecera-aurora {
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  filter: blur(50px);
+  opacity: .85;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 55% at 22% 25%, rgba(124,58,237,.65), transparent 70%),
+    radial-gradient(34% 45% at 80% 20%, rgba(6,182,212,.55), transparent 70%),
+    radial-gradient(46% 50% at 55% 90%, rgba(236,72,153,.3), transparent 70%);
+  animation: cabecera-aurora-drift 16s ease-in-out infinite alternate;
+}
+@keyframes cabecera-aurora-drift {
+  0%   { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(2%,-3%,0) rotate(5deg) scale(1.08); }
+  100% { transform: translate3d(-3%,2%,0) rotate(-4deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cabecera-aurora { animation: none; }
 }
 
 .topbar {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,.1);
 }
 
 .topbar-inner {
@@ -85,8 +115,8 @@ button { font-family: inherit; cursor: pointer; }
   flex-shrink: 0;
 }
 
-.brand-name { font-weight: 700; font-size: 16px; }
-.brand-tag { font-size: 12.5px; color: var(--text-muted); }
+.brand-name { font-weight: 700; font-size: 16px; color: #ffffff; }
+.brand-tag { font-size: 12.5px; color: #b7b2d6; }
 
 .btn-cart {
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
@@ -113,6 +143,8 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .banner-destacado {
+  position: relative;
+  z-index: 2;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   color: #fff;
   padding: 12px 0;
@@ -492,6 +524,8 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Barra de contacto arriba (misma info que el pie) ---------- */
 .contact-bar {
+  position: relative;
+  z-index: 2;
   background: var(--accent-soft);
   border-bottom: 1px solid var(--border);
   padding: 10px 20px;
