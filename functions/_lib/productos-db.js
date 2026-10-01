@@ -35,7 +35,7 @@ const SELECT_ADMIN = `
 `;
 
 export async function listarProductosAdmin(db) {
-  const { results } = await db.prepare(`${SELECT_ADMIN} ORDER BY c.orden ASC, p.nombre ASC`).all();
+  const { results } = await db.prepare(`${SELECT_ADMIN} ORDER BY c.orden ASC, p.orden ASC, p.nombre ASC`).all();
   return results || [];
 }
 
@@ -46,10 +46,38 @@ export async function listarProductosPublicos(db) {
        FROM productos p
        LEFT JOIN categorias c ON c.id = p.categoria_id
        WHERE p.disponible = 1
-       ORDER BY c.orden ASC, p.nombre ASC`
+       ORDER BY c.orden ASC, p.orden ASC, p.nombre ASC`
     )
     .all();
   return results || [];
+}
+
+// Intercambia el `orden` con el producto vecino (arriba/abajo) DENTRO DE
+// LA MISMA CATEGORÍA — mover un producto nunca lo saca de su categoría,
+// solo cambia su posición entre los demás productos de ahí.
+export async function moverProducto(db, id, direccion) {
+  const producto = await db.prepare("SELECT * FROM productos WHERE id = ?").bind(id).first();
+  if (!producto) return { error: "Producto no encontrado." };
+
+  const { results: hermanos } = await db
+    .prepare("SELECT id, orden FROM productos WHERE categoria_id = ? ORDER BY orden ASC, nombre ASC")
+    .bind(producto.categoria_id)
+    .all();
+
+  const idx = hermanos.findIndex((p) => p.id === Number(id));
+  if (idx === -1) return { error: "Producto no encontrado en su categoría." };
+
+  const vecinoIdx = direccion === "arriba" ? idx - 1 : idx + 1;
+  if (vecinoIdx < 0 || vecinoIdx >= hermanos.length) return { ok: true }; // ya está en el extremo
+
+  const actual = hermanos[idx];
+  const vecino = hermanos[vecinoIdx];
+
+  await db.batch([
+    db.prepare("UPDATE productos SET orden = ? WHERE id = ?").bind(vecino.orden, actual.id),
+    db.prepare("UPDATE productos SET orden = ? WHERE id = ?").bind(actual.orden, vecino.id),
+  ]);
+  return { ok: true };
 }
 
 // Estadísticas rápidas para las tarjetas del panel de productos.

@@ -306,6 +306,17 @@ function renderProductos() {
 
       const filaClase = alerta ? ` class="${alerta.clase === "stock-alert-critica" ? "fila-stock-critica" : "fila-stock-baja"}"` : "";
 
+      // Las flechas mueven el producto dentro de SU categoría — la
+      // posición se calcula sobre todos los productos de esa categoría
+      // (no sobre la lista filtrada), para que siempre sea consistente
+      // aunque el filtro de categoría esté activo.
+      const hermanos = productosCache
+        .filter((x) => x.categoria_id === p.categoria_id)
+        .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.nombre.localeCompare(b.nombre));
+      const idxHermano = hermanos.findIndex((x) => x.id === p.id);
+      const esPrimero = idxHermano <= 0;
+      const esUltimo = idxHermano === -1 || idxHermano === hermanos.length - 1;
+
       return `
         <tr${filaClase}>
           <td>${foto}</td>
@@ -317,6 +328,8 @@ function renderProductos() {
           <td>${badge}</td>
           <td>
             <div class="row-actions">
+              <button type="button" class="btn-mini" data-mover-producto="${p.id}:arriba" title="Subir dentro de su categoría" ${esPrimero ? "disabled" : ""}>▲</button>
+              <button type="button" class="btn-mini" data-mover-producto="${p.id}:abajo" title="Bajar dentro de su categoría" ${esUltimo ? "disabled" : ""}>▼</button>
               <button type="button" class="btn-mini" data-editar="${p.id}">Editar</button>
               <button type="button" class="btn-mini btn-mini-danger" data-borrar="${p.id}">Borrar</button>
             </div>
@@ -332,6 +345,25 @@ function renderProductos() {
   tbody.querySelectorAll("[data-borrar]").forEach((btn) => {
     btn.addEventListener("click", () => borrarProducto(Number(btn.dataset.borrar)));
   });
+  tbody.querySelectorAll("[data-mover-producto]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const [id, direccion] = btn.dataset.moverProducto.split(":");
+      moverProductoUI(id, direccion);
+    });
+  });
+}
+
+async function moverProductoUI(id, direccion) {
+  try {
+    await api(`/api/admin/productos/${id}/mover`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ direccion }),
+    });
+    await cargarProductos();
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 function abrirModalProducto(id) {
