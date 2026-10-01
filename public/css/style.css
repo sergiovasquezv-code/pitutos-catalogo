@@ -37,33 +37,10 @@ html, body { max-width: 100%; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #0e0b1a;
+  background: var(--bg);
   color: var(--text);
   font-size: 15px;
   line-height: 1.5;
-  position: relative;
-}
-
-/* Fondo aurora de toda la página (no solo la cabecera): manchas de luz
-   violeta/cian/rosa que se mueven lento, fijas respecto a la ventana para
-   que acompañen el scroll. Las tarjetas de producto siguen con fondo claro
-   (var(--card)) y flotan encima gracias a su propio box-shadow. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -20%;
-  z-index: -1;
-  filter: blur(60px);
-  opacity: .8;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 50% at 18% 12%, rgba(124,58,237,.55), transparent 70%),
-    radial-gradient(32% 42% at 82% 8%, rgba(6,182,212,.45), transparent 70%),
-    radial-gradient(42% 48% at 50% 95%, rgba(236,72,153,.25), transparent 70%);
-  animation: cabecera-aurora-drift 20s ease-in-out infinite alternate;
-}
-@media (prefers-reduced-motion: reduce) {
-  body::before { animation: none; }
 }
 
 a { color: var(--accent-dark); }
@@ -79,7 +56,7 @@ button { font-family: inherit; cursor: pointer; }
   top: 0;
   z-index: 20;
   overflow: hidden;
-  background: transparent;
+  background: #0e0b1a;
 }
 
 /* Mismo fondo animado de la portada (manchas de luz violeta/cian que se
@@ -206,14 +183,14 @@ button { font-family: inherit; cursor: pointer; }
 
 .loading, .error-page {
   text-align: center;
-  color: #b7b2d6;
+  color: var(--text-muted);
   padding: 60px 20px;
   font-size: 15px;
 }
 
 .error-page { color: var(--danger); }
 
-.catalog-intro { margin: 4px 0 16px; color: #b7b2d6; }
+.catalog-intro { margin: 4px 0 16px; color: var(--text-muted); }
 
 .categoria-filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
 .chip-categoria {
