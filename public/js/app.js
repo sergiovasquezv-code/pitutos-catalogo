@@ -112,7 +112,15 @@ function renderCatalogo() {
     return;
   }
 
-  const categorias = [...new Set(state.productos.map((p) => p.categoria || "General"))].sort();
+  // Las categorías se listan en el mismo orden en que llegan los productos
+  // (ya vienen ordenados desde el backend por categorias.orden), no por
+  // orden alfabético — así el filtro respeta el orden que se define en el panel.
+  const categorias = [];
+  for (const p of state.productos) {
+    const c = p.categoria || "General";
+    if (!categorias.includes(c)) categorias.push(c);
+  }
+
   const productosFiltrados = categoriaSeleccionada
     ? state.productos.filter((p) => (p.categoria || "General") === categoriaSeleccionada)
     : state.productos;
@@ -129,12 +137,33 @@ function renderCatalogo() {
   `
       : "";
 
+  // Con "Todas" seleccionado, se agrupa visualmente por categoría (con su
+  // propio título) en vez de mezclar todo en una sola grilla — así se nota
+  // el orden de categorías. Al filtrar una sola categoría, se muestra
+  // directo su grilla sin repetir el título.
+  let gridHtml;
+  if (!categoriaSeleccionada && categorias.length > 1) {
+    gridHtml = categorias
+      .map((c) => {
+        const productosCat = productosFiltrados.filter((p) => (p.categoria || "General") === c);
+        return `
+          <section class="catalog-seccion">
+            <h2 class="catalog-seccion-titulo">${c}</h2>
+            <div class="catalog-grid">
+              ${productosCat.map(productoCardHtml).join("")}
+            </div>
+          </section>
+        `;
+      })
+      .join("");
+  } else {
+    gridHtml = `<div class="catalog-grid">${productosFiltrados.map(productoCardHtml).join("")}</div>`;
+  }
+
   app.innerHTML = `
     <p class="catalog-intro">Elige lo que necesites y arma tu pedido. El pago se hace con Mercado Pago.</p>
     ${filtroHtml}
-    <div class="catalog-grid">
-      ${productosFiltrados.map(productoCardHtml).join("")}
-    </div>
+    ${gridHtml}
   `;
 
   app.querySelectorAll("[data-cat]").forEach((btn) => {

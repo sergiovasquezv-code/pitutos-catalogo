@@ -201,6 +201,15 @@ button { font-family: inherit; cursor: pointer; }
 .chip-categoria:hover { border-color: var(--accent); color: var(--accent-dark); }
 .chip-categoria.active { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-color: transparent; color: #fff; }
 
+.catalog-seccion { margin-bottom: 28px; }
+.catalog-seccion-titulo {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
 .catalog-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
