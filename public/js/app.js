@@ -182,28 +182,37 @@ function renderCatalogo() {
 // para que el cliente sienta que hay que apurarse. No aplica a servicios
 // (no manejan stock) ni a productos agotados (ese ya tiene su propio aviso).
 function alertaStock(p) {
-  if (p.tipo === "servicio" || typeof p.stock !== "number" || p.stock <= 0) return null;
+  if (p.tipo === "servicio" || p.tipo === "descarga" || typeof p.stock !== "number" || p.stock <= 0) return null;
   if (p.stock === 1) return { texto: "¡Última unidad!", clase: "stock-alert-critica" };
   if (p.stock <= 3) return { texto: "¡Pocas unidades!", clase: "stock-alert-baja" };
   return null;
 }
 
+// Precio que se muestra: los programas para descargar con precio 0 son
+// "Descarga gratis"; con precio, es lo que cuesta la licencia ("Desde $X").
+function precioTexto(p) {
+  if (p.tipo === "descarga") return p.precio > 0 ? `Licencia desde ${money(p.precio)}` : "Descarga gratis";
+  return money(p.precio);
+}
+
 function productoCardHtml(p) {
   const foto = p.fotos && p.fotos[0] ? p.fotos[0] : "";
   const esServicio = p.tipo === "servicio";
-  const agotado = !esServicio && typeof p.stock === "number" && p.stock <= 0;
+  const esDescarga = p.tipo === "descarga";
+  const agotado = !esServicio && !esDescarga && typeof p.stock === "number" && p.stock <= 0;
   const alerta = alertaStock(p);
   return `
     <button type="button" class="product-card" data-ver-sku="${p.sku}">
       <div class="product-photo-wrap">
         ${foto ? `<img class="product-photo" src="${foto}" alt="${p.nombre}" loading="lazy" />` : `<div class="product-photo product-photo-empty"></div>`}
         ${esServicio ? `<span class="badge-servicio">Servicio</span>` : ""}
+        ${esDescarga ? `<span class="badge-servicio badge-descarga">Programa · Descarga</span>` : ""}
         ${agotado ? `<span class="badge-agotado">Agotado</span>` : ""}
         ${alerta ? `<span class="badge-stock-alerta ${alerta.clase}">${alerta.texto}</span>` : ""}
       </div>
       <div class="product-body">
         <div class="product-name">${p.nombre}</div>
-        <div class="product-price">${money(p.precio)}</div>
+        <div class="product-price">${precioTexto(p)}</div>
       </div>
     </button>
   `;
@@ -237,10 +246,11 @@ function abrirProducto(sku) {
   }
 
   document.getElementById("pm-descripcion").textContent = p.descripcion || "";
-  document.getElementById("pm-precio").textContent = money(p.precio);
+  document.getElementById("pm-precio").textContent = precioTexto(p);
 
   const esServicio = p.tipo === "servicio";
-  const agotado = !esServicio && typeof p.stock === "number" && p.stock <= 0;
+  const esDescarga = p.tipo === "descarga";
+  const agotado = !esServicio && !esDescarga && typeof p.stock === "number" && p.stock <= 0;
   const alerta = alertaStock(p);
   const stockEl = document.getElementById("pm-stock");
   stockEl.classList.remove("stock-alert-critica", "stock-alert-baja");
@@ -248,7 +258,7 @@ function abrirProducto(sku) {
     stockEl.textContent = alerta.texto;
     stockEl.classList.add(alerta.clase);
     stockEl.hidden = false;
-  } else if (!esServicio && !agotado && typeof p.stock === "number" && p.stock <= 5) {
+  } else if (!esServicio && !esDescarga && !agotado && typeof p.stock === "number" && p.stock <= 5) {
     stockEl.textContent = `Quedan ${p.stock} disponibles`;
     stockEl.hidden = false;
   } else {
@@ -257,9 +267,19 @@ function abrirProducto(sku) {
 
   // Un servicio no se compra directo: se pide una cotización en vez de
   // mostrar cantidad + "Agregar al carrito".
-  document.getElementById("pm-actions").hidden = esServicio || agotado;
-  document.getElementById("pm-agotado").hidden = esServicio || !agotado;
+  document.getElementById("pm-actions").hidden = esServicio || esDescarga || agotado;
+  document.getElementById("pm-agotado").hidden = esServicio || esDescarga || !agotado;
   document.getElementById("pm-cotizar-actions").hidden = !esServicio;
+
+  // Un programa se descarga directo (el enlace siempre entrega la última
+  // versión) y, si tiene, se compra su licencia en otra página.
+  document.getElementById("pm-descarga-actions").hidden = !esDescarga;
+  if (esDescarga) {
+    document.getElementById("pm-descargar").href = p.enlace || "#";
+    const comprar = document.getElementById("pm-comprar-licencia");
+    comprar.hidden = !p.enlace_compra;
+    if (p.enlace_compra) comprar.href = p.enlace_compra;
+  }
 
   const qtyInput = document.getElementById("pm-qty");
   qtyInput.value = 1;

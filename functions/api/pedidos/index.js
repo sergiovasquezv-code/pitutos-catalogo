@@ -37,6 +37,7 @@ export async function onRequestPost({ request, env }) {
     const producto = await buscarProductoPublico(db, String(linea.sku || ""));
     const cantidad = Math.max(1, Math.min(50, Number(linea.cantidad) || 1));
     if (!producto) return json({ error: `Producto no disponible: ${linea.sku}` }, 400);
+    if (producto.tipo === "descarga") return json({ error: `"${producto.nombre}" se descarga desde su ficha; no va en el carrito.` }, 400);
     if (producto.tipo !== "servicio" && cantidad > producto.stock) {
       return json({ error: `Solo quedan ${producto.stock} unidades de "${producto.nombre}".` }, 400);
     }

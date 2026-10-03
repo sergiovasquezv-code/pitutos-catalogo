@@ -28,6 +28,50 @@ export async function generarSkuUnico(db, nombre) {
   return sku;
 }
 
+// Tipos de ítem del catálogo:
+//   producto -> con stock, se agrega al carrito y se paga
+//   servicio -> sin stock, se cotiza
+//   descarga -> programa que se descarga (ej: MiPOS): botón "Descargar" a `enlace`
+//               y, opcional, "Comprar licencia" a `enlace_compra`. Sin stock ni carrito.
+export function normalizarTipo(v) {
+  return v === "servicio" || v === "descarga" ? v : "producto";
+}
+
+export function tieneStock(tipo) {
+  return normalizarTipo(tipo) === "producto";
+}
+
+// Solo enlaces https (descarga o compra); vacío = sin enlace
+export function enlaceValido(v) {
+  const t = (v || "").toString().trim();
+  if (!t) return "";
+  try {
+    const u = new URL(t);
+    return u.protocol === "https:" && t.length <= 500 ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+// Las columnas `enlace` y `enlace_compra` se crean solas la primera vez
+// (no hace falta correr ninguna migración a mano).
+let columnasDescargaListas = false;
+export async function asegurarColumnasDescarga(db) {
+  if (columnasDescargaListas) return;
+  try {
+    await db.prepare("SELECT enlace, enlace_compra FROM productos LIMIT 1").all();
+  } catch {
+    for (const col of ["enlace", "enlace_compra"]) {
+      try {
+        await db.prepare(`ALTER TABLE productos ADD COLUMN ${col} TEXT`).run();
+      } catch {
+        /* ya existía */
+      }
+    }
+  }
+  columnasDescargaListas = true;
+}
+
 const SELECT_ADMIN = `
   SELECT p.*, c.nombre AS categoria_nombre, c.orden AS categoria_orden
   FROM productos p
@@ -35,14 +79,16 @@ const SELECT_ADMIN = `
 `;
 
 export async function listarProductosAdmin(db) {
+  await asegurarColumnasDescarga(db);
   const { results } = await db.prepare(`${SELECT_ADMIN} ORDER BY c.orden ASC, p.orden ASC, p.nombre ASC`).all();
   return results || [];
 }
 
 export async function listarProductosPublicos(db) {
+  await asegurarColumnasDescarga(db);
   const { results } = await db
     .prepare(
-      `SELECT p.sku, p.nombre, p.precio, p.descripcion, p.foto_key, p.stock, p.tipo, c.nombre AS categoria_nombre, c.orden AS categoria_orden
+      `SELECT p.sku, p.nombre, p.precio, p.descripcion, p.foto_key, p.stock, p.tipo, p.enlace, p.enlace_compra, c.nombre AS categoria_nombre, c.orden AS categoria_orden
        FROM productos p
        LEFT JOIN categorias c ON c.id = p.categoria_id
        WHERE p.disponible = 1
@@ -86,9 +132,9 @@ export async function estadisticasProductos(db) {
     .prepare(
       `SELECT
          COALESCE(SUM(CASE WHEN disponible = 1 THEN 1 ELSE 0 END), 0) AS activos,
-         COALESCE(SUM(CASE WHEN disponible = 1 AND tipo != 'servicio' AND stock <= 0 THEN 1 ELSE 0 END), 0) AS agotados,
-         COALESCE(SUM(CASE WHEN disponible = 1 AND tipo != 'servicio' THEN stock ELSE 0 END), 0) AS unidades_stock,
-         COALESCE(SUM(CASE WHEN disponible = 1 AND tipo != 'servicio' THEN precio * stock ELSE 0 END), 0) AS valor_inventario
+         COALESCE(SUM(CASE WHEN disponible = 1 AND tipo = 'producto' AND stock <= 0 THEN 1 ELSE 0 END), 0) AS agotados,
+         COALESCE(SUM(CASE WHEN disponible = 1 AND tipo = 'producto' THEN stock ELSE 0 END), 0) AS unidades_stock,
+         COALESCE(SUM(CASE WHEN disponible = 1 AND tipo = 'producto' THEN precio * stock ELSE 0 END), 0) AS valor_inventario
        FROM productos`
     )
     .first();

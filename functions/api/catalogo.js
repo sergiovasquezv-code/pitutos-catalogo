@@ -23,6 +23,8 @@ export async function onRequestGet({ request, env }) {
     fotos: p.foto_key ? [`/api/fotos/${p.foto_key}`] : [],
     stock: p.stock,
     tipo: p.tipo || "producto",
+    enlace: p.tipo === "descarga" ? p.enlace || "" : undefined,
+    enlace_compra: p.tipo === "descarga" ? p.enlace_compra || "" : undefined,
     categoria: p.categoria_nombre || "General",
   }));
 

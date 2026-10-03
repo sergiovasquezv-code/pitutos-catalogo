@@ -1,7 +1,15 @@
 import { json } from "../../../_lib/json.js";
 import { nowIso } from "../../../_lib/dates.js";
 import { sesionValida } from "../../../_lib/session.js";
-import { generarSkuUnico, listarProductosAdmin, estadisticasProductos } from "../../../_lib/productos-db.js";
+import {
+  generarSkuUnico,
+  listarProductosAdmin,
+  estadisticasProductos,
+  normalizarTipo,
+  tieneStock,
+  enlaceValido,
+  asegurarColumnasDescarga,
+} from "../../../_lib/productos-db.js";
 import { randomFotoProductoKey } from "../../../_lib/tokens.js";
 
 const MAX_BYTES = 6 * 1024 * 1024; // 6 MB
@@ -26,10 +34,12 @@ export async function onRequestPost({ request, env }) {
   const nombre = (form.get("nombre") || "").toString().trim();
   const precio = Math.round(Number(form.get("precio")));
   const descripcion = (form.get("descripcion") || "").toString().trim();
-  const tipo = form.get("tipo") === "servicio" ? "servicio" : "producto";
-  // Los servicios no manejan stock (reparación de PC, configuración de
-  // servidores, etc.) — se guarda en 0 y el catálogo no lo muestra.
-  const stock = tipo === "servicio" ? 0 : Math.max(0, Math.round(Number(form.get("stock")) || 0));
+  const tipo = normalizarTipo(form.get("tipo"));
+  // Servicios y programas para descargar no manejan stock — se guarda en 0
+  // y el catálogo no lo muestra.
+  const stock = tieneStock(tipo) ? Math.max(0, Math.round(Number(form.get("stock")) || 0)) : 0;
+  const enlace = tipo === "descarga" ? enlaceValido(form.get("enlace")) : "";
+  const enlaceCompra = tipo === "descarga" ? enlaceValido(form.get("enlace_compra")) : "";
   const disponible = form.get("disponible") === "false" ? 0 : 1;
   const categoriaId = Number(form.get("categoria_id"));
   const foto = form.get("foto");
@@ -37,6 +47,8 @@ export async function onRequestPost({ request, env }) {
   if (!nombre) return json({ error: "Falta el nombre del producto." }, 400);
   if (!Number.isFinite(precio) || precio < 0) return json({ error: "El precio no es válido." }, 400);
   if (!categoriaId) return json({ error: "Elige una categoría." }, 400);
+  if (tipo === "descarga" && !enlace) return json({ error: "Pon el enlace de descarga (debe empezar con https://)." }, 400);
+  if (enlaceCompra === null) return json({ error: "El enlace para comprar debe empezar con https://." }, 400);
 
   let fotoKey = null;
   if (foto && typeof foto !== "string") {
@@ -54,15 +66,16 @@ export async function onRequestPost({ request, env }) {
   }
 
   const db = env.DB;
+  await asegurarColumnasDescarga(db);
   const sku = await generarSkuUnico(db, nombre);
   const ahora = nowIso();
 
   const result = await db
     .prepare(
-      `INSERT INTO productos (sku, nombre, precio, descripcion, foto_key, stock, disponible, categoria_id, tipo, creado_en)
-       VALUES (?,?,?,?,?,?,?,?,?,?)`
+      `INSERT INTO productos (sku, nombre, precio, descripcion, foto_key, stock, disponible, categoria_id, tipo, enlace, enlace_compra, creado_en)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`
     )
-    .bind(sku, nombre, precio, descripcion || null, fotoKey, stock, disponible, categoriaId, tipo, ahora)
+    .bind(sku, nombre, precio, descripcion || null, fotoKey, stock, disponible, categoriaId, tipo, enlace || null, enlaceCompra || null, ahora)
     .run();
 
   return json({ ok: true, id: result.meta.last_row_id, sku });

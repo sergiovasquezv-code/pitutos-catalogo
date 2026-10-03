@@ -291,6 +291,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 #pm-cotizar-actions { margin-top: 10px; }
+#pm-descarga-actions { margin-top: 10px; display: grid; gap: 8px; }
+#pm-descarga-actions .btn-block { margin-top: 0; }
+.btn-enlace { display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
+.product-photo-wrap .badge-descarga { background: #0f766e; }
+.badge-pill.badge-descarga { background: #ccfbf1; color: #0f766e; }
 #pm-cotizar-actions p { margin-top: 0; }
 
 /* Aviso de poco stock para el cliente, en la tarjeta del catálogo — una
@@ -733,7 +738,7 @@ button { font-family: inherit; cursor: pointer; }
 .modal-header-row h2 { margin: 0; }
 .modal-box form { display: flex; flex-direction: column; gap: 10px; }
 .modal-box label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
-.modal-box input[type="text"], .modal-box input[type="number"], .modal-box textarea, .modal-box input[type="file"], .modal-box select {
+.modal-box input[type="text"], .modal-box input[type="url"], .modal-box input[type="number"], .modal-box textarea, .modal-box input[type="file"], .modal-box select {
   padding: 9px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--text); font-weight: 400; background: var(--card);
 }
 .modal-box textarea { resize: vertical; min-height: 60px; }

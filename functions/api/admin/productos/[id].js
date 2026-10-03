@@ -2,6 +2,7 @@ import { json } from "../../../_lib/json.js";
 import { nowIso } from "../../../_lib/dates.js";
 import { sesionValida } from "../../../_lib/session.js";
 import { randomFotoProductoKey } from "../../../_lib/tokens.js";
+import { normalizarTipo, tieneStock, enlaceValido, asegurarColumnasDescarga } from "../../../_lib/productos-db.js";
 
 const MAX_BYTES = 6 * 1024 * 1024; // 6 MB
 const TIPOS_PERMITIDOS = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -10,6 +11,7 @@ export async function onRequestPut({ request, env, params }) {
   if (!(await sesionValida(request, env))) return json({ error: "No autorizado." }, 401);
 
   const db = env.DB;
+  await asegurarColumnasDescarga(db);
   const id = params.id;
   const producto = await db.prepare("SELECT * FROM productos WHERE id = ?").bind(id).first();
   if (!producto) return json({ error: "Producto no encontrado." }, 404);
@@ -25,17 +27,25 @@ export async function onRequestPut({ request, env, params }) {
   const precioRaw = form.get("precio");
   const precio = precioRaw === null || precioRaw === "" ? producto.precio : Math.round(Number(precioRaw));
   const descripcion = form.has("descripcion") ? (form.get("descripcion") || "").toString().trim() : producto.descripcion;
-  const tipo = form.has("tipo") ? (form.get("tipo") === "servicio" ? "servicio" : "producto") : producto.tipo || "producto";
+  const tipo = form.has("tipo") ? normalizarTipo(form.get("tipo")) : normalizarTipo(producto.tipo);
   const stockRaw = form.get("stock");
-  // Un servicio no maneja stock — si se cambia el tipo a "servicio" se
+  // Servicios y descargas no manejan stock — si se cambia el tipo se
   // guarda en 0 aunque el formulario mande otra cosa.
-  const stock =
-    tipo === "servicio" ? 0 : stockRaw === null || stockRaw === "" ? producto.stock : Math.max(0, Math.round(Number(stockRaw) || 0));
+  const stock = !tieneStock(tipo)
+    ? 0
+    : stockRaw === null || stockRaw === ""
+      ? producto.stock
+      : Math.max(0, Math.round(Number(stockRaw) || 0));
+  const enlace = tipo !== "descarga" ? "" : form.has("enlace") ? enlaceValido(form.get("enlace")) : producto.enlace || "";
+  const enlaceCompra =
+    tipo !== "descarga" ? "" : form.has("enlace_compra") ? enlaceValido(form.get("enlace_compra")) : producto.enlace_compra || "";
   const disponible = form.has("disponible") ? (form.get("disponible") === "false" ? 0 : 1) : producto.disponible;
   const categoriaId = form.has("categoria_id") && form.get("categoria_id") ? Number(form.get("categoria_id")) : producto.categoria_id;
   const foto = form.get("foto");
 
   if (!Number.isFinite(precio) || precio < 0) return json({ error: "El precio no es válido." }, 400);
+  if (tipo === "descarga" && !enlace) return json({ error: "Pon el enlace de descarga (debe empezar con https://)." }, 400);
+  if (enlaceCompra === null) return json({ error: "El enlace para comprar debe empezar con https://." }, 400);
 
   let fotoKey = producto.foto_key;
   if (foto && typeof foto !== "string") {
@@ -56,9 +66,9 @@ export async function onRequestPut({ request, env, params }) {
 
   await db
     .prepare(
-      `UPDATE productos SET nombre=?, precio=?, descripcion=?, foto_key=?, stock=?, disponible=?, categoria_id=?, tipo=?, actualizado_en=? WHERE id=?`
+      `UPDATE productos SET nombre=?, precio=?, descripcion=?, foto_key=?, stock=?, disponible=?, categoria_id=?, tipo=?, enlace=?, enlace_compra=?, actualizado_en=? WHERE id=?`
     )
-    .bind(nombre, precio, descripcion || null, fotoKey, stock, disponible, categoriaId, tipo, nowIso(), id)
+    .bind(nombre, precio, descripcion || null, fotoKey, stock, disponible, categoriaId, tipo, enlace || null, enlaceCompra || null, nowIso(), id)
     .run();
 
   return json({ ok: true });

@@ -296,7 +296,19 @@
           <select id="p-tipo">
             <option value="producto">Producto (con stock)</option>
             <option value="servicio">Servicio (sin stock — se cotiza)</option>
+            <option value="descarga">Programa para descargar (ej: MiPOS)</option>
           </select>
+        </label>
+        <p class="hint-small" id="p-descarga-hint" hidden>
+          En el catálogo muestra un botón "Descargar" (y "Comprar licencia" si pones ese enlace), sin carrito ni stock. Precio en 0 = "Descarga gratis"; con precio = "Licencia desde $…".
+        </p>
+        <label id="p-enlace-label" hidden>
+          Enlace de descarga (https://…)
+          <input type="url" id="p-enlace" placeholder="https://github.com/…/releases/latest/download/MiPOS-Instalador.exe" />
+        </label>
+        <label id="p-enlace-compra-label" hidden>
+          Enlace para comprar la licencia (opcional)
+          <input type="url" id="p-enlace-compra" placeholder="https://panel.mispitutosinformaticos.cl/mipos-comprar.html" />
         </label>
         <p class="hint-small" id="p-tipo-hint" hidden>
           En el catálogo este servicio va a mostrar un botón "Cotizar" en vez de "Agregar al carrito" — el cliente describe lo que necesita y te llega a ti, sin pago inmediato.

@@ -279,7 +279,8 @@ function renderProductos() {
 
   tbody.innerHTML = lista
     .map((p) => {
-      const esServicio = p.tipo === "servicio";
+      const esServicio = p.tipo === "servicio" || p.tipo === "descarga"; // sin stock
+      const esDescarga = p.tipo === "descarga";
 
       // Aviso visual de poco stock — solo para productos visibles, con
       // stock bajo pero no agotados (agotado ya tiene su propio badge).
@@ -321,7 +322,7 @@ function renderProductos() {
         <tr${filaClase}>
           <td>${foto}</td>
           <td>${p.nombre}</td>
-          <td>${esServicio ? `<span class="badge-pill badge-servicio">Servicio</span>` : `<span class="hint-small">Producto</span>`}</td>
+          <td>${esDescarga ? `<span class="badge-pill badge-descarga">Descarga</span>` : esServicio ? `<span class="badge-pill badge-servicio">Servicio</span>` : `<span class="hint-small">Producto</span>`}</td>
           <td><span class="categoria-tag">${p.categoria_nombre || "Sin categoría"}</span></td>
           <td>${money(p.precio)}</td>
           <td>${esServicio ? "—" : `${p.stock}${alerta ? `<br><span class="hint-small stock-alert-texto ${alerta.clase}">${alerta.texto}</span>` : ""}`}</td>
@@ -384,7 +385,9 @@ function abrirModalProducto(id) {
     document.getElementById("p-id").value = p.id;
     document.getElementById("p-nombre").value = p.nombre;
     document.getElementById("p-categoria-id").value = p.categoria_id;
-    document.getElementById("p-tipo").value = p.tipo === "servicio" ? "servicio" : "producto";
+    document.getElementById("p-tipo").value = p.tipo === "servicio" || p.tipo === "descarga" ? p.tipo : "producto";
+    document.getElementById("p-enlace").value = p.enlace || "";
+    document.getElementById("p-enlace-compra").value = p.enlace_compra || "";
     document.getElementById("p-precio").value = p.precio;
     document.getElementById("p-descripcion").value = p.descripcion || "";
     document.getElementById("p-stock").value = p.stock;
@@ -404,10 +407,17 @@ function abrirModalProducto(id) {
 // Un servicio no maneja stock, así que ese campo se oculta y deja de ser
 // obligatorio cuando se elige "Servicio" en el formulario.
 function actualizarVisibilidadStock() {
-  const esServicio = document.getElementById("p-tipo").value === "servicio";
-  document.getElementById("p-stock-label").hidden = esServicio;
-  document.getElementById("p-stock").required = !esServicio;
+  const tipo = document.getElementById("p-tipo").value;
+  const esServicio = tipo === "servicio";
+  const esDescarga = tipo === "descarga";
+  document.getElementById("p-stock-label").hidden = esServicio || esDescarga;
+  document.getElementById("p-stock").required = !esServicio && !esDescarga;
   document.getElementById("p-tipo-hint").hidden = !esServicio;
+  // Programas para descargar: enlace de descarga (obligatorio) y de compra
+  document.getElementById("p-descarga-hint").hidden = !esDescarga;
+  document.getElementById("p-enlace-label").hidden = !esDescarga;
+  document.getElementById("p-enlace-compra-label").hidden = !esDescarga;
+  document.getElementById("p-enlace").required = esDescarga;
 }
 
 document.getElementById("p-tipo").addEventListener("change", actualizarVisibilidadStock);
@@ -432,6 +442,8 @@ document.getElementById("form-producto").addEventListener("submit", async (e) =>
   fd.append("precio", document.getElementById("p-precio").value);
   fd.append("descripcion", document.getElementById("p-descripcion").value.trim());
   fd.append("stock", document.getElementById("p-stock").value || "0");
+  fd.append("enlace", document.getElementById("p-enlace").value.trim());
+  fd.append("enlace_compra", document.getElementById("p-enlace-compra").value.trim());
   fd.append("disponible", document.getElementById("p-disponible").checked ? "true" : "false");
   const fotoInput = document.getElementById("p-foto");
   if (fotoInput.files.length) fd.append("foto", fotoInput.files[0]);
