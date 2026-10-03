@@ -188,10 +188,15 @@ function alertaStock(p) {
   return null;
 }
 
-// Precio que se muestra: los programas para descargar con precio 0 son
-// "Descarga gratis"; con precio, es lo que cuesta la licencia ("Desde $X").
+// Precio que se muestra. Programas para descargar: con precio, lo que se
+// baja es una PRUEBA gratis y después se paga la licencia (se dice claro,
+// por transparencia); con precio 0, el programa es gratis de verdad.
+function esPrueba(p) {
+  return p.tipo === "descarga" && p.precio > 0;
+}
+
 function precioTexto(p) {
-  if (p.tipo === "descarga") return p.precio > 0 ? `Licencia desde ${money(p.precio)}` : "Descarga gratis";
+  if (p.tipo === "descarga") return esPrueba(p) ? `Licencia desde ${money(p.precio)}` : "Gratis";
   return money(p.precio);
 }
 
@@ -212,6 +217,7 @@ function productoCardHtml(p) {
       </div>
       <div class="product-body">
         <div class="product-name">${p.nombre}</div>
+        ${esPrueba(p) ? `<div class="product-prueba">Prueba gratis, luego licencia pagada</div>` : ""}
         <div class="product-price">${precioTexto(p)}</div>
       </div>
     </button>
@@ -276,6 +282,12 @@ function abrirProducto(sku) {
   document.getElementById("pm-descarga-actions").hidden = !esDescarga;
   if (esDescarga) {
     document.getElementById("pm-descargar").href = p.enlace || "#";
+    document.getElementById("pm-descargar").textContent = esPrueba(p) ? "⬇ Descargar prueba gratis" : "⬇ Descargar";
+    const aviso = document.getElementById("pm-prueba-aviso");
+    aviso.hidden = !esPrueba(p);
+    if (esPrueba(p)) {
+      aviso.innerHTML = `<b>Es una versión de prueba (demo).</b> Funciona completa durante el período de prueba; para seguir usándolo después tienes que comprar una licencia, desde ${money(p.precio)}.`;
+    }
     const comprar = document.getElementById("pm-comprar-licencia");
     comprar.hidden = !p.enlace_compra;
     if (p.enlace_compra) comprar.href = p.enlace_compra;
