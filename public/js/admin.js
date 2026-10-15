@@ -540,6 +540,7 @@ function renderPedidos(pedidos) {
       if (p.telefono) {
         acciones += ` <button type="button" class="btn-mini" data-whatsapp="${p.id}">📱 WhatsApp</button>`;
       }
+      acciones += ` <button type="button" class="btn-mini btn-mini-danger" data-eliminar="${p.id}">🗑 Eliminar</button>`;
 
       return `
         <tr>
@@ -564,6 +565,24 @@ function renderPedidos(pedidos) {
   tbody.querySelectorAll("[data-whatsapp]").forEach((btn) => {
     btn.addEventListener("click", () => abrirModalWhatsapp(btn.dataset.whatsapp));
   });
+  tbody.querySelectorAll("[data-eliminar]").forEach((btn) => {
+    btn.addEventListener("click", () => eliminarPedido(btn.dataset.eliminar));
+  });
+}
+
+async function eliminarPedido(id) {
+  const p = pedidosCache.find((x) => String(x.id) === String(id));
+  let mensaje = `¿Eliminar el pedido de ${p ? p.nombre : "este cliente"}? Esta acción no se puede deshacer.`;
+  if (p && p.estado === "pagado") {
+    mensaje += "\n\nOJO: está marcado como pagado. Si lo eliminas, deja de contar en 'Total vendido' y en Estadísticas, y el stock ya descontado NO se devuelve.";
+  }
+  if (!confirm(mensaje)) return;
+  try {
+    await api(`/api/admin/pedidos/${id}`, { method: "DELETE" });
+    await cargarPedidos();
+  } catch (err) {
+    alert(err.message);
+  }
 }
 
 async function cambiarEstadoPedido(id, estado) {
